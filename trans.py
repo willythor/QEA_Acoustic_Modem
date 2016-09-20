@@ -2,6 +2,7 @@ import numpy as np
 import math
 import pyaudio
 from subprocess import call
+import wave
 
 def char_2_bits(character):
 
@@ -33,19 +34,20 @@ def bits_2_wave(bits, Fs):
 
 	"""converts a string of bits into a 440hz wave with a zero amplitude equating 
 	to a '0' bit value and .25 amplitude equating to a '1' bit value. Each bit
-	plays for a .1 sec increment of time.
+	plays for a .1 second increment of time.
 	"""
 
 	wave = []
 	#begin wave with a unique starter freq to signal the start of a transmission
-	wave.append(sine(540, 1, Fs))
+	wave.append(sine(800, 1, Fs))
 
 	for bit in bits:
 		if bit == 0:
-			wave.append(sine(0,.1,Fs))
+			wave.append(sine(640,.1,Fs))
 		elif bit == 1:
 			wave.append(sine(440,.1,Fs))
 
+	wave.append(sine(800, 1, Fs))
 	wave = np.concatenate(wave)*0.25
 
 	return wave
@@ -73,16 +75,29 @@ def play_wave(samples, Fs, volume = 1):
 
 	p.terminate()
 
+	# stream.write(samples.astype(np.float32).tostring())
+
+	wf = wave.open('test.wav', 'wb')
+	wf.setnchannels(1)
+	wf.setsampwidth(p.get_sample_size(pyaudio.paFloat32))
+	wf.setframerate(Fs)
+	wf.writeframes(b''.join(samples.astype(np.float32).tostring()))
+	wf.close()
+
+
+
 def run_transmitter(input_string,Fs): 	
 
 	"""turns on JACK port and creates and plays a wave based 
 	upon an input string 
 	"""
-	call(["sudo", "jack_control", "start"])
 
-	output_wave =bits_2_wave(str_2_bits(input_string),Fs)
+	call(["sudo", "jack_control", "start"])
+	print str_2_bits(input_string)
+	output_wave = bits_2_wave(str_2_bits(input_string),Fs)
+
 
 	play_wave(output_wave,Fs)
 
 
-run_transmitter("jonah is the bomb dot com",44100)
+run_transmitter("mica is super cool, JK",44100)
