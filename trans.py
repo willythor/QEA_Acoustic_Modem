@@ -39,7 +39,7 @@ def bits_2_wave(bits, Fs):
 
 	wave = []
 	#begin wave with a unique starter freq to signal the start of a transmission
-	wave.append(sine(800, 1, Fs))
+	wave.append(sine(840, 1, Fs))
 
 	for bit in bits:
 		if bit == 0:
@@ -47,7 +47,7 @@ def bits_2_wave(bits, Fs):
 		elif bit == 1:
 			wave.append(sine(440,.1,Fs))
 
-	wave.append(sine(800, 1, Fs))
+	wave.append(sine(840, 1, Fs))
 	wave = np.concatenate(wave)*0.25
 
 	return wave
