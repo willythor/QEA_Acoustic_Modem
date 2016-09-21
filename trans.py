@@ -1,8 +1,10 @@
 import numpy as np
 import math
-import pyaudio
+# import pyaudio
 from subprocess import call
 import wave
+# import matplotlib.pyplot as plt
+import sounddevice as sd
 
 def char_2_bits(character):
 
@@ -43,12 +45,15 @@ def bits_2_wave(bits, Fs):
 
 	for bit in bits:
 		if bit == 0:
-			wave.append(sine(640,.1,Fs))
+			wave.append(sine(640,.1,Fs)*.5)
 		elif bit == 1:
-			wave.append(sine(440,.1,Fs))
+			wave.append(sine(640,.1,Fs))
 
 	wave.append(sine(840, 1, Fs))
-	wave = np.concatenate(wave)*0.25
+	wave = np.concatenate(wave)
+	# plt.figure(1)
+	# plt.plot(wave,'k')
+	# plt.show()
 
 	return wave
 
@@ -63,26 +68,36 @@ def play_wave(samples, Fs, volume = 1):
 	"""takes a wave in list form and converts into a sound file by writing it 
 	to a PyAudio object
 	"""
-	p = pyaudio.PyAudio()
 
-	stream = p.open(format=pyaudio.paFloat32,
-	                channels=1,
-	                rate=Fs,
-	                output=True)
-	stream.write(samples.astype(np.float32))
+	sd.play(samples, Fs)
 
-	stream.close()
+	# plt.figure(1)
+	# plt.plot(samples,'k')
+	# plt.show()
 
-	p.terminate()
+	# p = pyaudio.PyAudio()
+
+	# stream = p.open(format=pyaudio.paFloat32,
+	#                 channels=1,
+	#                 rate=Fs,
+	#                 output=False)
+
+	# #stream.write(samples.astype(np.float32))
 
 	# stream.write(samples.astype(np.float32).tostring())
 
-	wf = wave.open('test.wav', 'wb')
-	wf.setnchannels(1)
-	wf.setsampwidth(p.get_sample_size(pyaudio.paFloat32))
-	wf.setframerate(Fs)
-	wf.writeframes(b''.join(samples.astype(np.float32).tostring()))
-	wf.close()
+	# stream.close()
+
+	# p.terminate()
+
+	# stream.write(samples.astype(np.float32).tostring())
+
+	# wf = wave.open('test4.wav', 'wb')
+	# wf.setnchannels(1)
+	# wf.setsampwidth(p.get_sample_size(pyaudio.paFloat32))
+	# wf.setframerate(Fs)
+	# wf.writeframes(b''.join(samples.astype(pyaudio.paFloat32).tostring()))
+	# wf.close()
 
 
 

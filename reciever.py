@@ -61,10 +61,12 @@ def freq_listener(duration):
 
 
 	#creates and saves an audio recording 
-	get_audio(25)
+	# get_audio(25)
 
 	#reads said audio file
-	fs, data = wavfile.read('test2.wav') 
+	fs, data = wavfile.read('test.wav') 
+
+	print data
 	
 	a = data
 
@@ -73,25 +75,24 @@ def freq_listener(duration):
 	#how is this normalization? 
 	b = [(ele/2**8.)*2-1 for ele in a] # this is 8-bit track, b is now normalized on [-1,1)
 	
+
 	listening = False	
 	starter_ender_freq_found = False
 	binary_vals = []
 
-	for i in range(177):
+	for i in range(400):
 	
-		# if listening:
-		# 	# section = b[int(i * 4400) : int((i +1) * 4400)]
-		# else:
 
 		section = b[int(i * 4400/10) : int((i + 1) * 4400/10)]
 
-		sect_fft = fft(section) # calculate fourier transform (complex numbers list)
-	
+		sect_fft = (fft((section))) # calculate fourier transform (complex numbers list)
+		
 		maxPosition = np.argmax(abs(sect_fft[:])) 
 
 		freq = maxPosition*100
-		
+		print freq
 		if freq > 750:
+			print 'hello'
 			binary_section = b[int(i * 4400/10) + 44000:]
 			break
 
@@ -99,30 +100,28 @@ def freq_listener(duration):
 
 
 	for m in range(200):
+		print 'print'
 
  		section = binary_section[int(m * 4400) : int((m +1) * 4400)]
 
  		sect_fft = fft(section) # calculate fourier transform (complex numbers list)
 	
-		maxPosition = np.argmax(abs(sect_fft[:])) 
+		maxPosition = np.argmax(abs(sect_fft[3:])) 
 
 		freq = maxPosition*10
 
 		print freq
 		
 		if freq > 550 and freq < 750:
+			plt.plot(abs(sect_fft[:1000]),'r') 
+			plt.show()
 			binary_vals.append(0)
+
 		elif freq > 350 and freq < 450:
 			binary_vals.append(1)
 		elif freq > 750:
 			break
 			
-
-
-		
-	
-		
-	
 	return binary_vals
 		
 
