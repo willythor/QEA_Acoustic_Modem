@@ -50,23 +50,39 @@ def get_audio(RECORD_SECONDS):
 
 
 
+def binary_conversion(binary_list):
+	"""
+	converts a list of binary vals to a str
+	"""
+
+	print binary_list
+
+	asci = np.packbits(binary_list)
+
+	char_vals = ''.join(map(chr,asci))
+
+	return char_vals
+
 
 def freq_listener(duration):
 	"""opens the wav file saved in get_audio() and searches it for a binary signal
 	"""
-	# try:
+
 	binary_vals = []
 
-	real_binary_vals = [0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1]
+	#used to check agains the demodulated binary vals
+	real_binary_vals = [0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1]
 
 
 	#creates and saves an audio recording 
-	# get_audio(25)
+	# get_audio(20)
 
 	#reads said audio file
-	fs, data = wavfile.read('test.wav') 
+	fs, data = wavfile.read('this_works.wav') 
 
-	print data
+
+
+	print 'data', data
 	
 	a = data
 
@@ -74,13 +90,13 @@ def freq_listener(duration):
 
 	#how is this normalization? 
 	b = [(ele/2**8.)*2-1 for ele in a] # this is 8-bit track, b is now normalized on [-1,1)
-	
 
-	listening = False	
-	starter_ender_freq_found = False
 	binary_vals = []
 
-	for i in range(400):
+	plt.plot(b,'r') 
+	plt.show()
+
+	for i in range(6000):
 	
 
 		section = b[int(i * 4400/10) : int((i + 1) * 4400/10)]
@@ -91,45 +107,88 @@ def freq_listener(duration):
 
 		freq = maxPosition*100
 		print freq
-		if freq > 750:
-			print 'hello'
-			binary_section = b[int(i * 4400/10) + 44000:]
+		if freq > 750 and freq < 850 and np.amax(abs(sect_fft[:])) > 100:
+		
+			binary_section = b[int(i * 4400/10) + int(44000*1):]
+			print 'we found the starter freq'
 			break
 
-			
+		
+	fft_avg = []	
+
+	for n in range(8,15):
+
+ 		section = binary_section[int(n * 4400) : int((n +1) * 4400)]	
+
+ 		sect_fft = fft(section) # calculate fourier transform (complex numbers list)
+
+		max_y_val = np.amax(abs(sect_fft[:]))	
+
+		fft_avg.append(max_y_val)
 
 
-	for m in range(200):
-		print 'print'
+	print fft_avg
+	fft_thresh = ((np.amin(fft_avg) + np.amax(fft_avg)))/2
+
+	z = 0
+
+	for m in range(2000):
+		print 'this is m: ' + str(m)
+
+		print 'this is thresh' + str(fft_thresh)
+
 
  		section = binary_section[int(m * 4400) : int((m +1) * 4400)]
 
  		sect_fft = fft(section) # calculate fourier transform (complex numbers list)
 	
-		maxPosition = np.argmax(abs(sect_fft[3:])) 
+		maxPosition = np.argmax(abs(sect_fft[:])) 
+
+		# plt.plot(abs(sect_fft[:1000]),'r') 
+		# plt.show()
 
 		freq = maxPosition*10
-
+		print 'commencing binary analysis'
+		print m
+		print z
 		print freq
-		
-		if freq > 550 and freq < 750:
+
+		if freq > 750 and m != 0:
 			plt.plot(abs(sect_fft[:1000]),'r') 
 			plt.show()
-			binary_vals.append(0)
-
-		elif freq > 350 and freq < 450:
-			binary_vals.append(1)
-		elif freq > 750:
 			break
-			
-	return binary_vals
+		elif freq > 750 and m == 0:
+			z = z + 1
+			continue
+		
+		if freq > 550 and freq < 750:
+			if np.amax(abs(sect_fft[:])) < fft_thresh:
+										
+										   
+				binary_vals.append(0)
+
+			else:
+				binary_vals.append(1)
+		else:
+			binary_vals.append(0)
+								
+		# print real_binary_vals[m-z]
+		# print m-z
+
+		# # print binary_vals
+		# if real_binary_vals[m-z] != binary_vals[m-z]:
+		# 	yo = yo + 1
+		# 	print 'YOOOO!'
+		# 	print real_binary_vals[m-z]
+		# 	print np.amax(abs(sect_fft[:]))
+		# 	plt.plot(abs(sect_fft[:1000]),'r') 
+		# 	plt.show()
+		# else:
+		# 	print 'weee goood'
+		# 	print np.amax(abs(sect_fft[:]))
+		# 	print binary_vals[m-z]
+
+	return binary_conversion(binary_vals)
 		
 
-   
-
-binary_list = freq_listener(22)  
-print len(binary_list)
-binary_list = ''.join(str(e) for e in binary_list)
-
-
-print ' '.join([binary_list[i:i+8] for i in range(0, len(binary_list), 8)])
+print freq_listener(22)  

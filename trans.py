@@ -1,10 +1,10 @@
 import numpy as np
 import math
-# import pyaudio
+import pyaudio
 from subprocess import call
 import wave
 # import matplotlib.pyplot as plt
-import sounddevice as sd
+# import sounddevice as sd
 
 def char_2_bits(character):
 
@@ -45,15 +45,15 @@ def bits_2_wave(bits, Fs):
 
 	for bit in bits:
 		if bit == 0:
-			wave.append(sine(640,.1,Fs)*.5)
+			wave.append(sine(640,.1,Fs)*.25)
 		elif bit == 1:
-			wave.append(sine(640,.1,Fs))
+			wave.append(sine(640,.1,Fs))*2
 
 	wave.append(sine(840, 1, Fs))
 	wave = np.concatenate(wave)
-	# plt.figure(1)
-	# plt.plot(wave,'k')
-	# plt.show()
+	plt.figure(1)
+	plt.plot(wave,'k')
+	plt.show()
 
 	return wave
 
@@ -69,26 +69,26 @@ def play_wave(samples, Fs, volume = 1):
 	to a PyAudio object
 	"""
 
-	sd.play(samples, Fs)
+	# sd.play(samples, Fs)
 
 	# plt.figure(1)
 	# plt.plot(samples,'k')
 	# plt.show()
 
-	# p = pyaudio.PyAudio()
+	p = pyaudio.PyAudio()
 
-	# stream = p.open(format=pyaudio.paFloat32,
-	#                 channels=1,
-	#                 rate=Fs,
-	#                 output=False)
+	stream = p.open(format=pyaudio.paFloat32,
+	                channels=1,
+	                rate=Fs,
+	                output=True)
 
-	# #stream.write(samples.astype(np.float32))
+	#stream.write(samples.astype(np.float32))
 
-	# stream.write(samples.astype(np.float32).tostring())
+	stream.write(samples.astype(np.float32).tostring())
 
-	# stream.close()
+	stream.close()
 
-	# p.terminate()
+	p.terminate()
 
 	# stream.write(samples.astype(np.float32).tostring())
 
@@ -108,11 +108,11 @@ def run_transmitter(input_string,Fs):
 	"""
 
 	call(["sudo", "jack_control", "start"])
-	print str_2_bits(input_string)
+	print(str_2_bits(input_string))
 	output_wave = bits_2_wave(str_2_bits(input_string),Fs)
 
 
-	play_wave(output_wave,Fs)
+	# play_wave(output_wave,Fs)
 
 
-run_transmitter("mica is super cool, JK",44100)
+run_transmitter("mka!",44100)
